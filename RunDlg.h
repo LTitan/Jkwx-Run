@@ -46,4 +46,7 @@ public:
 	afx_msg void OnBnClickedButton2();
 private:
 	CString m_sysTime;
+	CString m_how_much_km;
+public:
+	afx_msg void OnBnClickedButton3();
 };

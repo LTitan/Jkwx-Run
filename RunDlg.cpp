@@ -58,6 +58,7 @@ CRunDlg::CRunDlg(CWnd* pParent /*=NULL*/)
 	, m_passWd(_T(""))
 	, m_km(0)
 	, m_sysTime(_T(""))
+	, m_how_much_km(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -70,6 +71,7 @@ void CRunDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT3, m_km);
 	DDV_MinMaxFloat(pDX, m_km, 0, 4.5);
 	DDX_Text(pDX, IDC_TIME, m_sysTime);
+	DDX_Text(pDX, IDC_KM, m_how_much_km);
 }
 
 BEGIN_MESSAGE_MAP(CRunDlg, CDialogEx)
@@ -78,6 +80,7 @@ BEGIN_MESSAGE_MAP(CRunDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON1, &CRunDlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON2, &CRunDlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CRunDlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -186,7 +189,11 @@ void CRunDlg::OnBnClickedButton1()
 	string num = CStringA(m_StuNum);
 	connectGetID(num, lg, check, id);
 	if (check)
+	{
+		m_how_much_km = L"已跑公里数:" + flash_how_much(id);
+		UpdateData(FALSE);
 		MessageBox(L"登录成功");
+	}
 }
 
 
@@ -204,4 +211,16 @@ void CRunDlg::OnBnClickedButton2()
 		MessageBox(L"成功");
 	else
 		MessageBox(CStringW(id.data()));
+}
+
+
+void CRunDlg::OnBnClickedButton3()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	if (id.length())
+	{
+		m_how_much_km = L"已跑公里数:" + flash_how_much(id);
+		UpdateData(FALSE);
+	}
+
 }

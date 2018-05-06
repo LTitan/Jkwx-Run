@@ -14,10 +14,12 @@
 
 
 using namespace std;
+string re;
 
 string phoneNum[] = {"131","132","133","134","135","136","137","138","139",
 "181","182","183","184","185","186","187","188","189",
 "151","152","153","154","155","156","157","158","159"};
+
 string true_num;
 
 string tm_select[60];
@@ -79,6 +81,60 @@ void init_time(SYSTEMTIME st,float s)
 		t_early = YMD+hour + tm_select[rand() % 60];
 	}
 
+}
+CString flash_how_much(string id)
+{
+	WSADATA wData;
+	::WSAStartup(MAKEWORD(2, 2), &wData);
+	SOCKET clientSocket = socket(AF_INET, 1, 0);
+	struct sockaddr_in SeverAddr = { 0 };
+	int Ret = 0;
+	int AddrLen = 0;
+	HANDLE hThread = 0;
+
+	string toSend = "POST /sunShine_Sports/xtGetSportResult.action HTTP/1.1\r\n";
+	string theId = "UserID:" + id + "\r\n";
+	toSend += theId;
+	toSend += "crack: 0\r\n"
+		"Accept-Encoding:gzip\r\n"
+		"Content-Length:6\r\n"
+		"Content-Type:application/x-www-form-urlencoded\r\n"
+		"Host:www.ccxyct.com:8080\r\n"
+		"User-Agent:Dalvik/2.1.0 (Linux; U; Android 7.1.2; XiaoMi Mi6 MIUI/8.4.12)\r\n\r\n"
+		"flag=0";
+	const char *buff = toSend.c_str();
+	SeverAddr.sin_addr.S_un.S_addr = inet_addr("47.95.192.115");
+	SeverAddr.sin_port = htons(8080);
+	SeverAddr.sin_family = AF_INET;
+	char bufRecv[4096] = { 0 };
+	int errNo = 0;
+	errNo = connect(clientSocket, (sockaddr *)&SeverAddr, sizeof(SeverAddr));
+	if (errNo == 0)
+	{
+		if (send(clientSocket, buff, strlen(buff), 0) > 0)
+		{
+
+		}
+		if (recv(clientSocket, bufRecv, 4096, 0) > 0)
+		{
+			string km = bufRecv;
+			int t;
+			for (int i = 0; i < km.length(); i++)
+			{
+				if (km[i] == 't'&&km[i + 1] == '\"'&&km[i + 2] == ':')
+				{
+					t = i;
+					break;
+				}
+			}
+			return CStringW(km.substr(t + 3, 5).c_str());
+		}
+	}
+	else
+	{
+		errNo = WSAGetLastError();
+	}
+	::WSACleanup();
 }
 void Check(string a,bool &c,string &id)
 {
@@ -151,7 +207,7 @@ void connectGetID(string num,bool &lg,bool &check,string &id)
 		}
 		if (recv(clientSocket, bufRecv, 4096, 0) > 0)
 		{
-			string re = bufRecv;
+			 re= bufRecv;
 			if (lg)
 			{
 				Check(re, check, id);
