@@ -4,6 +4,8 @@
 
 #pragma once
 #include "Cpasswd.h"
+#include "afxwin.h"
+
 
 // CRunDlg ¶Ô»°¿ò
 class CRunDlg : public CDialogEx
@@ -38,7 +40,7 @@ public:
 protected:
 	CString m_StuNum;
 public:
-	CString m_passWd;
+	CString m_passWd=L"0";
 	afx_msg void OnBnClickedButton1();
 private:
 	float m_km;
@@ -49,4 +51,13 @@ private:
 	CString m_how_much_km;
 public:
 	afx_msg void OnBnClickedButton3();
+	CComboBox m_Phone_name;
+	CComboBox m_Phone_value;
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnCbnSelchangeCombo1();
+	CString m_stu_name;
+	afx_msg BOOL GetMd5(CString strInput, CString &strOutput);
+	afx_msg void OnBnClickedButton4();
+	CString m_old,old;
+	CString m_new,new_p;
 };

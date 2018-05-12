@@ -9,12 +9,12 @@
 #include <sstream>
 #include <cmath>
 #include <ctime>
-#include <cstdlib>
+#include <afxinet.h>
 #pragma comment(lib,"ws2_32.lib")
 
 
 using namespace std;
-string re;
+string re="";
 
 string phoneNum[] = {"131","132","133","134","135","136","137","138","139",
 "181","182","183","184","185","186","187","188","189",
@@ -155,11 +155,26 @@ void Check(string a,bool &c,string &id)
 	id = a.substr(t+4,sum);
 	c = true;
 }
-void connectGetID(string num,bool &lg,bool &check,string &id)
+string name(string re)
+{
+	int po = re.find("studentName");
+	if (po)
+	{
+		int len=0;
+		for (int i = po+13; i < re.length(); i++)
+		{
+			if (re[i] != ',')
+				len++;
+			else break;
+		}
+		return re.substr(po + 13, len);
+	}
+}
+void connectGetID(string num,bool &lg,bool &check,string &id,string &stu_name,string pawd)
 {
 	WSADATA wData;
 	::WSAStartup(MAKEWORD(2, 2), &wData);
-
+	re = "";
 	SOCKET clientSocket = socket(AF_INET, 1, 0);
 	struct sockaddr_in SeverAddr = { 0 };
 	int Ret = 0;
@@ -189,7 +204,7 @@ void connectGetID(string num,bool &lg,bool &check,string &id)
 		"User-Agent:Dalvik/2.1.0 (Linux; U; Android 7.1.2; XiaoMi Mi6 MIUI/8.4.12)\r\n\r\n";
 	string ch = "stuNum=";
 	ch += num;
-	string postdata=ch+"&phoneNum="+true_num+"&passWd=e10adc3949ba59abbe56e057f20f883e&schoolId=60&stuId=1&token=\r\n\r\n";
+	string postdata=ch+"&phoneNum="+true_num+"&passWd="+pawd+"&schoolId=60&stuId=1&token=\r\n\r\n";
 	toSend += postdata;
 
 	const char *buff = toSend.c_str();
@@ -207,10 +222,19 @@ void connectGetID(string num,bool &lg,bool &check,string &id)
 		}
 		if (recv(clientSocket, bufRecv, 4096, 0) > 0)
 		{
-			 re= bufRecv;
+			//re = bufRecv;
+			int codelen = MultiByteToWideChar(CP_UTF8,0,bufRecv,-1,NULL,0);
+			WCHAR *pUnicode = new WCHAR[codelen + 1];
+			memset(pUnicode, 0, (codelen + 1) * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, bufRecv, -1, pUnicode, codelen);
+			CString cs(pUnicode);
+			delete[] pUnicode;
+			pUnicode = NULL;
+			re = CStringA(cs);
 			if (lg)
 			{
 				Check(re, check, id);
+				stu_name=name(re);
 			}
 		}
 	}
@@ -278,4 +302,58 @@ void postKm(float sum, string &id,bool &pan,SYSTEMTIME st)
 		errNo = WSAGetLastError();
 	}
 	::WSACleanup();
+}
+bool change_passwd(string id,CString old, CString new_p)
+{
+	WSADATA wData;
+	::WSAStartup(MAKEWORD(2, 2), &wData);
+	SOCKET clientSocket = socket(AF_INET, 1, 0);
+	struct sockaddr_in SeverAddr = { 0 };
+	int Ret = 0;
+	int AddrLen = 0;
+	HANDLE hThread = 0;
+
+	string toSend = "POST /sunShine_Sports/xtSetPassWord.action HTTP/1.1\r\n";
+	string theId = "UserID:" + id + "\r\n";
+	toSend += theId;
+	toSend += "crack: 0\r\n"
+		"Accept-Encoding:gzip\r\n"
+		"Content-Length:89\r\n"
+		"Content-Type:application/x-www-form-urlencoded\r\n"
+		"Host:www.ccxyct.com:8080\r\n"
+		"User-Agent:Dalvik/2.1.0 (Linux; U; Android 7.1.2; XiaoMi Mi6 MIUI/8.4.12)\r\n\r\n";
+
+	string  postdata;
+	postdata = "oldPassWord="+CStringA(old)+"&newPassWord="+CStringA(new_p)+"\r\n\r\n";
+	toSend += postdata;
+	const char *buff = toSend.c_str();
+	//id = toSend;
+	SeverAddr.sin_addr.S_un.S_addr = inet_addr("47.95.192.115");
+	SeverAddr.sin_port = htons(8080);
+	SeverAddr.sin_family = AF_INET;
+	char bufRecv[4096] = { 0 };
+	int errNo = 0;
+	string lre;
+	errNo = connect(clientSocket, (sockaddr *)&SeverAddr, sizeof(SeverAddr));
+	if (errNo == 0)
+	{
+		if (send(clientSocket, buff, strlen(buff), 0) > 0)
+		{
+
+		}
+		if (recv(clientSocket, bufRecv, 4096, 0) > 0)
+		{
+			lre = bufRecv;
+			if (lre.find("200"))
+			{
+				return 1;
+			}
+		}
+	}
+	else
+	{
+		errNo = WSAGetLastError();
+	}
+	::WSACleanup();
+	return 0;
 }
